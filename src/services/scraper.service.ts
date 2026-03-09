@@ -137,7 +137,7 @@ export async function extractTextFromPdf(buffer: Buffer): Promise<{
     // Rodapé de reservas (SELECT + GOURMET): Y=75% ao Y=100%
     // ─────────────────────────────────────────────────────────────────────────
 
-    const headerH = Math.floor(H * 0.18);
+    const headerH = Math.floor(H * 0.25);
     const tableStartY = headerH;
     const tableEndY = Math.floor(H * 0.72);
     const footerStartY = tableEndY;

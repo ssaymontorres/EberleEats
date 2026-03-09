@@ -15,12 +15,28 @@ const DAY_ORDER: DayOfWeek[] = [DayOfWeek.MON, DayOfWeek.TUE, DayOfWeek.WED, Day
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function extractWeekRange(text: string): { weekStart: Date; weekEnd: Date } | null {
-    const m = text.match(/(\d{2})\/(\d{2})(?:\/(\d{4}))?\s+a\s+(\d{2})\/(\d{2})\/(\d{4})/i);
-    if (!m) return null;
+    // Busca padrão DD/MM/YYYY a DD/MM/YYYY ou DD/MM a DD/MM/YYYY
+    const m = text.match(/(\d{2})\/(\d{2})(?:\/(\d{2,4}))?\s+(?:a|├á)\s+(\d{2})\/(\d{2})\/(\d{4})/i);
+    if (!m) {
+        // Fallback para quando o OCR falha muito (busca apenas dois padrões de data separados por 'a')
+        const dates = text.match(/(\d{2})\/(\d{2})/g);
+        if (dates && dates.length >= 2) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const [d1, m1] = dates[0].split('/');
+            const [d2, m2] = dates[1].split('/');
+            return {
+                weekStart: new Date(`${year}-${m1}-${d1}T12:00:00Z`),
+                weekEnd: new Date(`${year}-${m2}-${d2}T12:00:00Z`),
+            };
+        }
+        return null;
+    }
     const year = m[6];
     const startYear = m[3] ?? year;
+    const startYearFixed = startYear.length === 2 ? `20${startYear}` : startYear;
     return {
-        weekStart: new Date(`${startYear}-${m[2]}-${m[1]}T12:00:00Z`),
+        weekStart: new Date(`${startYearFixed}-${m[2]}-${m[1]}T12:00:00Z`),
         weekEnd: new Date(`${year}-${m[5]}-${m[4]}T12:00:00Z`),
     };
 }

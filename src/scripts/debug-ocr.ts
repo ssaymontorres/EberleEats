@@ -14,7 +14,8 @@ import { downloadCardapio, extractTextFromPdf } from '../services/scraper.servic
 async function main() {
     console.log('🔬 Diagnóstico: texto bruto do OCR\n');
     const buffer = await downloadCardapio();
-    const rawText = await extractTextFromPdf(buffer);
+    const output = await extractTextFromPdf(buffer);
+    const rawText = output.fullText;
 
     console.log('\n───────── TEXTO COMPLETO ─────────');
     // Mostra cada linha numerada para entender a estrutura

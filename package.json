@@ -9,6 +9,7 @@
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "whatsapp:setup": "ts-node src/scripts/setup-whatsapp.ts",
     "prisma:studio": "prisma studio",
     "test:scraper": "ts-node src/scripts/test-scraper.ts",
     "test:whatsapp": "ts-node src/scripts/test-whatsapp.ts"

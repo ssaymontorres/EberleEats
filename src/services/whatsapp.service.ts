@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { Prisma, Category } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { env, recipientList } from '../config/env';
 import { EvolutionApiPayload, EvolutionApiResponse } from '../types/menu.types';
 
@@ -97,18 +98,35 @@ export async function sendMessage(phone: string, text: string): Promise<void> {
 }
 
 /**
+ * Retorna a lista de destinatários (do banco + fallback env)
+ */
+async function getRecipients(): Promise<string[]> {
+    const subscribers = await prisma.subscriber.findMany({
+        where: { active: true },
+        select: { phone: true },
+    });
+
+    if (subscribers.length > 0) {
+        return subscribers.map((s: { phone: string }) => s.phone);
+    }
+
+    return recipientList;
+}
+
+/**
  * Envia o cardápio do dia para todos os destinatários configurados
  */
 export async function sendTodayMenu(day: MenuDayWithItems): Promise<void> {
     const message = formatDayMessage(day);
+    const recipients = await getRecipients();
 
-    console.log(`📤 Enviando cardápio para ${recipientList.length} destinatário(s)...`);
-    console.log('─'.repeat(60));
+    console.log(`📤 Enviando cardápio para ${recipients.length} destinatário(s)...`);
+    console.log('─'.repeat(40));
     console.log(message);
-    console.log('─'.repeat(60));
+    console.log('─'.repeat(40));
 
     const results = await Promise.allSettled(
-        recipientList.map((phone) => sendMessage(phone, message)),
+        recipients.map((phone) => sendMessage(phone, message)),
     );
 
     const failed = results.filter((r) => r.status === 'rejected');
@@ -122,8 +140,9 @@ export async function sendTodayMenu(day: MenuDayWithItems): Promise<void> {
  */
 export async function sendLunchReminder(): Promise<void> {
     const message = `🕐 *Lembrete!* O almoço está servido!\n\nNão esqueça de verificar o cardápio de hoje. Bom apetite! 🍴`;
+    const recipients = await getRecipients();
 
-    for (const phone of recipientList) {
+    for (const phone of recipients) {
         await sendMessage(phone, message);
     }
 }
