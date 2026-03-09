@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+model Menu {
+  id        String    @id @default(uuid())
+  weekStart DateTime
+  weekEnd   DateTime
+  scrapedAt DateTime  @default(now())
+  rawText   String?
+  days      MenuDay[]
+
+  @@map("menus")
+}
+
+model MenuDay {
+  id        String     @id @default(uuid())
+  menuId    String
+  menu      Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  dayOfWeek DayOfWeek
+  date      DateTime
+  items     MenuItem[]
+
+  @@unique([menuId, dayOfWeek])
+  @@map("menu_days")
+}
+
+model MenuItem {
+  id              String    @id @default(uuid())
+  menuDayId       String
+  menuDay         MenuDay   @relation(fields: [menuDayId], references: [id], onDelete: Cascade)
+  category        Category
+  dishes          String[]
+  reservationCode Int?
+  reservationDate DateTime?
+
+  @@map("menu_items")
+}
+
+model Subscriber {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@map("subscribers")
+}
+
+enum DayOfWeek {
+  MON
+  TUE
+  WED
+  THU
+  FRI
+}
+
+enum Category {
+  SABORES
+  SELECT
+  GOURMET
+  CAFE_DA_MANHA
+}
